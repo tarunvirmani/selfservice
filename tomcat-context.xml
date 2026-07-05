@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tomcat Context Configuration - IKEA Order Management System v2.3
+  Application: ikea-order-mgmt
+  Managed by:  HCLTech Middleware Solutioning
+  Status:      IBM MQ (baseline - awaiting Solace migration)
+
+  factory="org.apache.naming.factory.BeanFactory" is Tomcat's built-in
+  factory that creates Java beans by calling setters on the type class.
+  transportType=1 means CLIENT mode (TCP connection to MQ broker).
+-->
+<Context>
+
+  <!-- JMS Connection Factory - IBM MQ
+       BeanFactory calls: new MQQueueConnectionFactory()
+         .setHostName("ibmmq") .setPort(1414)
+         .setQueueManager("QM1") .setChannel("DEV.APP.SVRCONN")
+         .setTransportType(1)
+  -->
+  <Resource
+    name="jms/OrderQueueFactory"
+    auth="Container"
+    type="com.ibm.mq.jms.MQQueueConnectionFactory"
+    factory="org.apache.naming.factory.BeanFactory"
+    hostName="ibmmq"
+    port="1414"
+    queueManager="QM1"
+    channel="DEV.APP.SVRCONN"
+    transportType="1"
+    description="IBM MQ JMS Connection Factory for Order Processing"/>
+
+  <!-- JMS Queue Destination - IBM MQ -->
+  <Resource
+    name="jms/OrderQueue"
+    auth="Container"
+    type="com.ibm.mq.jms.MQQueue"
+    factory="org.apache.naming.factory.BeanFactory"
+    baseQueueName="DEV.QUEUE.1"
+    description="Order Processing Queue - IBM MQ"/>
+
+</Context>

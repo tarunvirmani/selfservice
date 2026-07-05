@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  tomcat-users.xml
+  Defines users and roles for Tomcat Manager and Host Manager.
+
+  Roles used:
+    manager-gui    → access the web-based Manager UI at /manager/html
+    manager-script → access the text-based Manager API at /manager/text
+    manager-status → access the server status page at /manager/status
+
+  In production: use strong passwords, restrict roles per principle of least privilege.
+-->
+<tomcat-users xmlns="http://tomcat.apache.org/xml"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
+              version="1.0">
+
+  <!-- Roles -->
+  <role rolename="manager-gui"/>
+  <role rolename="manager-script"/>
+  <role rolename="manager-status"/>
+
+  <!--
+    Admin user — can access Manager GUI, script API, and status page.
+    Used by:
+      - Tomcat Manager web UI  → http://localhost:8888/manager/html
+      - Portal reload API      → http://localhost:8888/manager/text/reload?path=/order-mgmt
+  -->
+  <user username="admin"
+        password="admin123"
+        roles="manager-gui,manager-script,manager-status"/>
+
+</tomcat-users>

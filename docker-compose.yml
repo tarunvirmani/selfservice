@@ -1,0 +1,101 @@
+version: '3.8'
+
+# IBM MQ -> Solace PubSub+ Migration Demo
+# Run: docker-compose up -d
+# Stop: docker-compose down -v
+
+services:
+
+  # ── IBM MQ Queue Manager ──────────────────────────────────────────────
+  ibmmq:
+    image: icr.io/ibm-messaging/mq:latest
+    container_name: mq-demo
+    hostname: ibmmq
+    ports:
+      - "1414:1414"   # MQ listener (MQSC / client channel)
+      - "9443:9443"   # MQ Console + REST API
+    environment:
+      - LICENSE=accept
+      - MQ_QMGR_NAME=QM1
+      - MQ_APP_PASSWORD=passw0rd     # used by 'app' user
+      - MQ_ADMIN_PASSWORD=passw0rd   # used by 'admin' user
+    volumes:
+      - mqdata:/mnt/mqm
+    healthcheck:
+      test: ["CMD-SHELL", "dspmq -m QM1 | grep -q 'STATUS(Running)'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ── Solace PubSub+ Standard (free tier) ──────────────────────────────
+  solace:
+    image: solace/solace-pubsub-standard:latest
+    container_name: solace-demo
+    hostname: solace
+    ports:
+      - "8080:8080"   # Solace Admin Console (SEMP)
+      - "9000:9000"   # REST messaging
+      - "55555:55555" # SMF (Solace native protocol)
+      - "5672:5672"   # AMQP 1.0
+      # port 1883 (MQTT) omitted — not needed for this demo
+    environment:
+      - username_admin_globalaccesslevel=admin
+      - username_admin_password=admin
+      - system_scaling_maxconnectioncount=100
+    shm_size: '1g'
+    privileged: true
+    ulimits:
+      core: 0
+      nofile:
+        soft: 2448
+        hard: 1048576
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/SEMP/v2/config/ -u admin:admin > /dev/null"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 45s
+
+  # ── Apache Tomcat EE — IKEA Order Management System ──────────────
+  tomcat-ee:
+    build:
+      context: ./tomcat-docker
+      dockerfile: Dockerfile
+    container_name: tomcat-demo
+    hostname: tomcat-ee
+    ports:
+      - "8888:8080"   # Tomcat HTTP  → http://localhost:8888/order-mgmt/
+                      # Manager UI   → http://localhost:8888/manager/html
+    volumes:
+      #
+      # ── KEY CONFIGURATION MOUNT ─────────────────────────────────
+      # Mount our tomcat-context.xml as Tomcat's GLOBAL context.xml.
+      #
+      # What this means:
+      #   - Tomcat reads this file at startup to register JNDI Resources
+      #   - The <Resource> entries define JMS factories (IBM MQ or Solace)
+      #   - Any webapp deployed in this Tomcat instance can look them up
+      #     via java:comp/env/jms/OrderQueueFactory
+      #
+      # After the migration portal rewrites tomcat-context.xml:
+      #   → Run: docker restart tomcat-demo
+      #   → OR:  GET http://localhost:8888/manager/text/reload?path=/order-mgmt
+      #          (with auth: admin:admin123)
+      #   → Tomcat reloads, re-reads context.xml, binds the new Solace factory
+      #
+      - ./tomcat-context.xml:/usr/local/tomcat/conf/context.xml
+    depends_on:
+      ibmmq:
+        condition: service_healthy
+      solace:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/order-mgmt/ > /dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s   # Tomcat needs ~30-45s to start + compile JSPs
+
+volumes:
+  mqdata:

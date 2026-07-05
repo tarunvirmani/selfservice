@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  web.xml — IKEA Order Management System
+  Jakarta EE 8 / Servlet 4.0
+
+  The <resource-ref> elements below declare that this webapp USES
+  the JNDI resources defined in context.xml. Without these entries,
+  the webapp can't look up the resources via java:comp/env/...
+
+  How this connects to context.xml:
+    context.xml defines:  <Resource name="jms/OrderQueueFactory" .../>
+    web.xml declares:     <res-ref-name>jms/OrderQueueFactory</res-ref-name>
+    Java code looks up:   ctx.lookup("java:comp/env/jms/OrderQueueFactory")
+
+  The "java:comp/env/" prefix is the standard JNDI namespace for
+  resources declared in the webapp's own component environment.
+-->
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                             http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+  <display-name>IKEA Order Management System</display-name>
+  <description>
+    TomcatEE demo app for IBM MQ to Solace PubSub+ migration.
+    Managed by HCLTech Middleware Solutioning.
+  </description>
+
+  <!-- ── JMS Connection Factory resource reference ───────────────────
+       Maps the JNDI name "jms/OrderQueueFactory" to a
+       javax.jms.QueueConnectionFactory. The actual factory class
+       (IBM MQ or Solace) is determined by context.xml.
+  -->
+  <resource-ref>
+    <description>JMS Queue Connection Factory</description>
+    <res-ref-name>jms/OrderQueueFactory</res-ref-name>
+    <res-type>javax.jms.QueueConnectionFactory</res-type>
+    <res-auth>Container</res-auth>         <!-- Container manages auth -->
+    <res-sharing-scope>Shareable</res-sharing-scope>
+  </resource-ref>
+
+  <!-- ── JMS Queue Destination resource reference ────────────────────
+       Maps the JNDI name "jms/OrderQueue" to a javax.jms.Queue.
+       This is the destination (queue name) the app sends orders to.
+  -->
+  <resource-ref>
+    <description>JMS Order Queue Destination</description>
+    <res-ref-name>jms/OrderQueue</res-ref-name>
+    <res-type>javax.jms.Queue</res-type>
+    <res-auth>Container</res-auth>
+    <res-sharing-scope>Shareable</res-sharing-scope>
+  </resource-ref>
+
+  <!-- Default welcome page -->
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+
+</web-app>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Manager app context override.
+
+  By default Tomcat restricts Manager access to localhost (127.0.0.1 / ::1).
+  The default valve looks like:
+    <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+           allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />
+
+  We remove that restriction here so the Manager is accessible from
+  the Docker host (your laptop) at http://localhost:8888/manager/html
+
+  NOTE: In production, always restrict to specific IPs or use a VPN.
+-->
+<Context antiResourceLocking="false" privileged="true">
+  <!-- No RemoteAddrValve = accessible from any IP (demo only) -->
+</Context>

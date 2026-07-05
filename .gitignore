@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Backup / working files
+self_service_portal_SAVE_*.py
+self_service_portal.zip
+*.zip
+
+# Session memory (internal Claude context — not needed on other machines)
+CLAUDE.md
+
+# Binaries / tools
+putty/
+
+# Logs
+*.log
+
+# Environment / secrets (add a .env file locally for any API keys — never commit it)
+.env
+
+# OS
+.DS_Store
+Thumbs.db
